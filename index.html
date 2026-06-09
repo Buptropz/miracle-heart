@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="description" content="Miracle Heart — 基于 Three.js 与 AI 手势识别的交互式浪漫星云告白页面">
+  <meta name="theme-color" content="#0c0714">
+  <meta property="og:title" content="Miracle Heart - Interactive Nebula Confession">
+  <meta property="og:description" content="用三维粒子星云和手势交互，创造属于你们的宇宙奇迹">
+  <meta property="og:type" content="website">
+  <title>Miracle Heart — 星云告白</title>
+
+  <!-- Fonts: Google Fonts via official CDN -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Ma+Shan+Zheng&family=Long+Cang&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-black">
+
+  <!-- ====== Start Screen ====== -->
+  <div id="start-screen">
+    <div id="start-title">Miracle Heart</div>
+    <div id="start-sub">Interactive Nebula Confession</div>
+    <div id="start-hint">
+      🤌 左手捏合 · 唤醒记忆碎片 &nbsp;|&nbsp; ✌️ 左手剪刀 · 浮光三维画廊<br>
+      ✊ 左手握拳 · 隐入星云空间 &nbsp;|&nbsp; 🖐️ 右手开合 · 掌控宇宙爱心的跳动
+    </div>
+    <button id="btn-start">✨ 开启梦幻之旅</button>
+  </div>
+
+  <!-- ====== Main Title ====== -->
+  <div id="main-title" class="style-xmas">Miracle Heart</div>
+
+  <!-- ====== Settings Toggle ====== -->
+  <button id="toggle-btn" aria-label="设置">⚙</button>
+
+  <!-- ====== Canvas World ====== -->
+  <div id="canvas-wrapper">
+    <div id="canvas-container"></div>
+
+    <!-- Camera preview — Romantic Mirror -->
+    <div id="video-container">
+      <span class="cam-label">🪞 浪漫魔镜</span>
+      <div class="cam-corner cam-corner-tl"></div>
+      <div class="cam-corner cam-corner-tr"></div>
+      <div class="cam-corner cam-corner-bl"></div>
+      <div class="cam-corner cam-corner-br"></div>
+      <video id="input-video" autoplay playsinline muted></video>
+      <canvas id="skeleton-canvas"></canvas>
+    </div>
+
+    <!-- Photo overlay -->
+    <div id="html-overlay">
+      <img id="single-photo-view" src="" alt="Memory" loading="eager">
+      <div id="wall-view"></div>
+      <div id="ring-scene"><div id="ring-view"></div></div>
+    </div>
+
+    <!-- Status bar -->
+    <div id="ui-layer">
+      <div id="status-text">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="status-msg">等待启动...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== Control Panel ====== -->
+  <div id="ui-panel" class="hidden">
+    <div class="ctrl-section">
+      <h3>📝 表白文字自定义</h3>
+      <div class="ctrl-group">
+        <label>标题内容</label>
+        <input type="text" id="custom-text" value="Miracle Heart">
+      </div>
+      <div class="ctrl-group">
+        <label>字体大小 <span id="val-font-size">4.5</span>rem</label>
+        <input type="range" id="font-size" min="2.0" max="9.0" step="0.5" value="4.5">
+      </div>
+      <div class="ctrl-group">
+        <label>字体</label>
+        <select id="font-family">
+          <option value="'Great Vibes', cursive">Great Vibes (浪漫手写)</option>
+          <option value="'Ma Shan Zheng', cursive">马善政 (毛笔体)</option>
+          <option value="'Long Cang', cursive">龙苍 (灵动草书)</option>
+          <option value="'Noto Sans SC', sans-serif">思源黑体</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="ctrl-section">
+      <h3>🎨 场景设置</h3>
+      <div class="ctrl-group">
+        <label>背景主题</label>
+        <select id="bg-select">
+          <option value="black">🌌 浪漫星芒夜</option>
+          <option value="deep">🌃 深邃蓝</option>
+          <option value="warm">🔥 暖冬红晕</option>
+          <option value="aurora">❄️ 极光幻境</option>
+        </select>
+      </div>
+      <div class="ctrl-group">
+        <button id="btn-toggle-cam" class="ctrl-btn">📹 显示/隐藏 摄像头</button>
+      </div>
+      <div class="ctrl-group">
+        <button id="btn-fullscreen" class="ctrl-btn">⛶ 全屏模式</button>
+      </div>
+      <div class="ctrl-group">
+        <button id="btn-share-qr" class="ctrl-btn">📱 分享二维码</button>
+      </div>
+    </div>
+
+    <div class="ctrl-section">
+      <h3>🎵 记忆载入 (表白必备)</h3>
+      <div class="ctrl-group">
+        <button class="ctrl-btn" onclick="document.getElementById('music-input').click()">
+          📁 上传专属背景音乐 (MP3)
+        </button>
+        <input type="file" id="music-input" accept="audio/*" style="display:none">
+      </div>
+      <div class="ctrl-group">
+        <button class="ctrl-btn" onclick="document.getElementById('file-input').click()"
+                style="background:linear-gradient(90deg,rgba(255,117,140,0.3),rgba(255,117,140,0.1));border-color:#ff758c">
+          📷 上传你们的甜蜜照片
+        </button>
+        <input type="file" id="file-input" multiple accept="image/*" style="display:none">
+      </div>
+      <div class="ctrl-row" style="margin-top:6px">
+        <button id="btn-play-pause" class="ctrl-btn" style="width:42px;flex:none">▶</button>
+        <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.6" style="flex:1">
+      </div>
+    </div>
+
+    <div class="ctrl-section">
+      <h3>🎛️ 特效微调</h3>
+      <div class="ctrl-group">
+        <label>自转速度 <span id="val-rot">0.002</span></label>
+        <input type="range" id="rot-speed" min="0" max="0.08" step="0.002" value="0.002">
+      </div>
+      <div class="ctrl-group">
+        <label>音乐灵敏度 <span id="val-beat">1.0</span></label>
+        <input type="range" id="beat-sense" min="0" max="3.0" step="0.1" value="1.0">
+      </div>
+      <div class="ctrl-group">
+        <label>梦幻辉光强度 <span id="val-bloom">1.0</span></label>
+        <input type="range" id="bloom-strength" min="0.0" max="2.0" step="0.1" value="1.0">
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== QR Code Modal ====== -->
+  <div id="qr-modal">
+    <div id="qr-modal-box">
+      <h3>✨ Miracle Heart</h3>
+      <canvas id="qr-canvas"></canvas>
+      <p>📱 扫一扫，在手机上打开这份浪漫</p>
+      <div id="qr-url"></div>
+      <button id="qr-close">关 闭</button>
+    </div>
+  </div>
+
+  <!-- ====== Main Script ====== -->
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
