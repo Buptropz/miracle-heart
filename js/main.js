@@ -23,6 +23,10 @@ import { initAI, cleanupGestures, handPos, handTracked } from './gestures.js';
 import { initAudio, updateBeat, cleanupAudio, audioEl, audioCtx, beat } from './audio.js';
 import { setupUI } from './ui.js';
 import { photoMeshes, updatePhotoLogic, updateTransition, cleanupPhotos, cleanupTransition } from './photos.js';
+import { initCover, destroyCover } from './cover.js';
+
+// Start cover firefly system immediately
+initCover();
 
 let time = 0;
 let snowSystem;
@@ -193,6 +197,7 @@ function animate() {
 
 // --- Bootstrap ---
 document.getElementById('btn-start').addEventListener('click', async () => {
+  destroyCover();
   const screen = document.getElementById('start-screen');
   screen.style.opacity = '0';
   setTimeout(() => {

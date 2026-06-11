@@ -69,42 +69,72 @@ body.bg-aurora { background: radial-gradient(circle at top, #0f2027 0%, #1a3340 
   transition: opacity 1s ease;
 }
 
-/* Animated background particles on start screen */
+/* Firefly canvas — covers the full start screen */
+#firefly-canvas {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Flowing gradient overlay — slow hue shift from blue-purple to dark rose */
+#start-screen::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center bottom, #241018 0%, #0a0408 60%, #030102 100%);
+  opacity: 0;
+  animation: bgFlow 30s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes bgFlow {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 0.45; }
+}
+
+/* Star particles — reduced opacity to coexist with fireflies */
 #start-screen::before {
   content: '';
   position: absolute; inset: 0;
   background:
-    radial-gradient(1px 1px at 20% 30%, rgba(255,182,193,0.3), transparent),
-    radial-gradient(1px 1px at 40% 70%, rgba(255,215,0,0.2), transparent),
-    radial-gradient(2px 2px at 60% 20%, rgba(255,117,140,0.25), transparent),
-    radial-gradient(1px 1px at 80% 60%, rgba(255,182,193,0.2), transparent),
-    radial-gradient(2px 2px at 10% 80%, rgba(255,215,0,0.15), transparent);
+    radial-gradient(1px 1px at 20% 30%, rgba(255,182,193,0.2), transparent),
+    radial-gradient(1px 1px at 40% 70%, rgba(255,215,0,0.13), transparent),
+    radial-gradient(2px 2px at 60% 20%, rgba(255,117,140,0.17), transparent),
+    radial-gradient(1px 1px at 80% 60%, rgba(255,182,193,0.13), transparent),
+    radial-gradient(2px 2px at 10% 80%, rgba(255,215,0,0.10), transparent);
   animation: starPulse 4s ease-in-out infinite;
   pointer-events: none;
+  z-index: 0;
 }
 
 @keyframes starPulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.7; }
 }
 
 #start-title {
   font-family: var(--font-display);
   font-size: clamp(3rem, 8vw, 5.5rem);
-  background: linear-gradient(135deg, #ffffff 0%, #ffb6c1 35%, #ffd700 65%, #ff758c 100%);
+  background: linear-gradient(135deg, #fff5e6 0%, #ffb6c1 35%, #ffd700 65%, #ff8fab 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-bottom: 6px;
-  filter: drop-shadow(0 0 30px rgba(255, 182, 193, 0.5));
-  animation: titleShimmer 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(255, 182, 193, 0.5)) drop-shadow(0 0 60px rgba(255, 215, 0, 0.2));
+  animation: titleEntrance 1.2s ease-out forwards, titleShimmer 3s ease-in-out 1.2s infinite;
   position: relative;
   z-index: 1;
 }
 
+@keyframes titleEntrance {
+  0%   { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
 @keyframes titleShimmer {
-  0%, 100% { filter: drop-shadow(0 0 30px rgba(255, 182, 193, 0.5)); }
-  50% { filter: drop-shadow(0 0 50px rgba(255, 182, 193, 0.8)) drop-shadow(0 0 80px rgba(255, 215, 0, 0.3)); }
+  0%, 100% { filter: drop-shadow(0 0 20px rgba(255, 182, 193, 0.5)) drop-shadow(0 0 60px rgba(255, 215, 0, 0.2)); }
+  50%      { filter: drop-shadow(0 0 35px rgba(255, 182, 193, 0.7)) drop-shadow(0 0 80px rgba(255, 215, 0, 0.35)); }
 }
 
 #start-sub {
@@ -117,21 +147,61 @@ body.bg-aurora { background: radial-gradient(circle at top, #0f2027 0%, #1a3340 
   z-index: 1;
 }
 
+/* --- Heartbeat Ring --- */
+#heartbeat-ring {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  border: 2px solid rgba(232, 160, 180, 0.55);
+  box-shadow:
+    0 0 15px rgba(232, 160, 180, 0.4),
+    0 0 40px rgba(232, 160, 180, 0.12);
+  animation: heartbeat 0.833s ease-in-out infinite;
+  position: relative;
+  z-index: 1;
+  margin-bottom: 28px;
+}
+
+/* Radial halo behind the ring */
+#heartbeat-ring::after {
+  content: '';
+  position: absolute;
+  inset: -24px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(232, 160, 180, 0.3) 0%, transparent 70%);
+  opacity: 0;
+  animation: haloPulse 0.833s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  30%       { transform: scale(1.08); }
+  50%       { transform: scale(1.0); }
+  70%       { transform: scale(1.04); }
+}
+
+@keyframes haloPulse {
+  0%, 100% { opacity: 0; }
+  30%       { opacity: 0.3; }
+  50%       { opacity: 0; }
+  70%       { opacity: 0.15; }
+}
+
 #start-hint {
   color: var(--color-ice);
   font-size: 13px;
   line-height: 2.2;
   text-align: center;
   margin-bottom: 35px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   padding: 18px 32px;
   border-radius: var(--radius-md);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   max-width: 500px;
   position: relative;
   z-index: 1;
+  opacity: 0.7;
 }
 
 #btn-start {
@@ -148,9 +218,33 @@ body.bg-aurora { background: radial-gradient(circle at top, #0f2027 0%, #1a3340 
     0 0 40px rgba(255, 117, 140, 0.4),
     0 4px 20px rgba(255, 117, 140, 0.2);
   transition: all var(--transition-smooth);
+  animation: btnBreathe 0.833s ease-in-out infinite;
   position: relative;
   z-index: 1;
   overflow: hidden;
+}
+
+@keyframes btnBreathe {
+  0%, 100% {
+    box-shadow:
+      0 0 40px rgba(255, 117, 140, 0.4),
+      0 4px 20px rgba(255, 117, 140, 0.2);
+  }
+  30% {
+    box-shadow:
+      0 0 60px rgba(255, 117, 140, 0.6),
+      0 4px 30px rgba(255, 117, 140, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 40px rgba(255, 117, 140, 0.4),
+      0 4px 20px rgba(255, 117, 140, 0.2);
+  }
+  70% {
+    box-shadow:
+      0 0 50px rgba(255, 117, 140, 0.5),
+      0 4px 25px rgba(255, 117, 140, 0.25);
+  }
 }
 
 #btn-start::after {
@@ -165,11 +259,12 @@ body.bg-aurora { background: radial-gradient(circle at top, #0f2027 0%, #1a3340 
 #btn-start:hover {
   transform: scale(1.06) translateY(-2px);
   box-shadow:
-    0 0 60px rgba(255, 117, 140, 0.7),
-    0 8px 30px rgba(255, 117, 140, 0.3);
+    0 0 84px rgba(255, 117, 140, 0.7),
+    0 8px 42px rgba(255, 117, 140, 0.3);
+  animation: none;
 }
 #btn-start:hover::after { opacity: 1; }
-#btn-start:active { transform: scale(0.98); transition: transform 0.1s; }
+#btn-start:active { transform: scale(0.96); transition: transform 0.15s; }
 
 /* ============================================================
    Main Title
