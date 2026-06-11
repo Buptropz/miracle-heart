@@ -137,17 +137,86 @@ body.bg-aurora { background: radial-gradient(circle at top, #0f2027 0%, #1a3340 
   50%      { filter: drop-shadow(0 0 35px rgba(255, 182, 193, 0.7)) drop-shadow(0 0 80px rgba(255, 215, 0, 0.35)); }
 }
 
+/* --- Shared act container --- */
+.cover-act {
+  position: absolute; inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+  pointer-events: none;
+}
+.cover-act button { pointer-events: auto; }
+
+/* Sequential entrance delays for act-intro children */
+#act-intro > * {
+  opacity: 0;
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+#act-intro > :nth-child(1) { animation-delay: 0ms; }   /* heartbeat ring */
+#act-intro > :nth-child(2) { animation-delay: 300ms; }  /* title */
+#act-intro > :nth-child(3) { animation-delay: 600ms; }  /* subtitle */
+#act-intro > :nth-child(4) { animation-delay: 750ms; }  /* intro desc */
+#act-intro > :nth-child(5) { animation-delay: 900ms; }  /* button */
+
+@keyframes fadeInUp {
+  0%   { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Act 1 — Subtitle (project description) */
 #start-sub {
   color: var(--color-lavender);
-  letter-spacing: 8px;
-  font-size: 0.8rem;
-  margin-bottom: 30px;
-  text-transform: uppercase;
+  font-size: 0.85rem;
+  margin-bottom: 18px;
+  text-align: center;
+  line-height: 1.7;
   position: relative;
   z-index: 1;
 }
 
-/* --- Heartbeat Ring --- */
+/* Act 1 — Romantic intro text */
+#intro-desc {
+  color: #c8ddf0;
+  font-size: 0.95rem;
+  text-align: center;
+  line-height: 1.8;
+  margin-bottom: 32px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Act 1 — Explore button */
+#btn-explore {
+  padding: 15px 56px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, #ff758c, #ff7eb3);
+  border: none;
+  border-radius: var(--radius-full);
+  color: #fff;
+  cursor: pointer;
+  box-shadow:
+    0 0 40px rgba(255, 117, 140, 0.4),
+    0 4px 20px rgba(255, 117, 140, 0.2);
+  transition: all var(--transition-smooth);
+  animation: btnBreathe 0.833s ease-in-out infinite;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+}
+#btn-explore:hover {
+  transform: scale(1.06) translateY(-2px);
+  box-shadow:
+    0 0 84px rgba(255, 117, 140, 0.7),
+    0 8px 42px rgba(255, 117, 140, 0.3);
+  animation: none;
+}
+#btn-explore:active { transform: scale(0.96); transition: transform 0.15s; }
+
+/* --- Heartbeat Ring (Act 1, 80px) --- */
 #heartbeat-ring {
   width: 80px; height: 80px;
   border-radius: 50%;
@@ -184,6 +253,136 @@ body.bg-aurora { background: radial-gradient(circle at top, #0f2027 0%, #1a3340 
   30%       { opacity: 0.3; }
   50%       { opacity: 0; }
   70%       { opacity: 0.15; }
+}
+
+/* --- Heartbeat Ring Small (Act 2, 56px) --- */
+#heartbeat-ring-sm {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  border: 2px solid rgba(232, 160, 180, 0.55);
+  box-shadow:
+    0 0 12px rgba(232, 160, 180, 0.35),
+    0 0 32px rgba(232, 160, 180, 0.10);
+  animation: heartbeatSm 0.833s ease-in-out infinite;
+  position: relative;
+  z-index: 1;
+  margin-bottom: 22px;
+}
+#heartbeat-ring-sm::after {
+  content: '';
+  position: absolute;
+  inset: -20px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(232, 160, 180, 0.25) 0%, transparent 70%);
+  opacity: 0;
+  animation: haloPulseSm 0.833s ease-in-out infinite;
+}
+@keyframes heartbeatSm {
+  0%, 100% { transform: scale(1); }
+  30%       { transform: scale(1.05); }
+  50%       { transform: scale(1.0); }
+  70%       { transform: scale(1.03); }
+}
+@keyframes haloPulseSm {
+  0%, 100% { opacity: 0; }
+  30%       { opacity: 0.2; }
+  50%       { opacity: 0; }
+  70%       { opacity: 0.1; }
+}
+
+/* Act 2 — Gesture title */
+#gesture-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 5vw, 2.6rem);
+  color: #e8c8d8;
+  text-align: center;
+  margin-bottom: 28px;
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 0 18px rgba(255, 182, 193, 0.35);
+}
+
+/* --- Gesture Cards Grid --- */
+#gesture-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  max-width: 520px;
+  margin-bottom: 32px;
+  position: relative;
+  z-index: 1;
+}
+
+.gesture-card {
+  width: 140px;
+  height: 105px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  color: #fff;
+  transition: all var(--transition-smooth);
+  opacity: 0;
+  transform: translateY(12px);
+  animation: cardEnter 0.5s ease-out forwards;
+}
+.gesture-card:nth-child(1) { animation-delay: 0.05s; }
+.gesture-card:nth-child(2) { animation-delay: 0.15s; }
+.gesture-card:nth-child(3) { animation-delay: 0.25s; }
+.gesture-card:nth-child(4) { animation-delay: 0.35s; }
+.gesture-card:nth-child(5) { animation-delay: 0.45s; }
+
+@keyframes cardEnter {
+  0%   { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.gesture-card:hover {
+  background: rgba(255, 117, 140, 0.12);
+  border-color: rgba(255, 182, 193, 0.3);
+  box-shadow: 0 0 24px rgba(255, 117, 140, 0.15);
+  transform: translateY(-2px);
+}
+
+.gesture-icon {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.gesture-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.gesture-desc {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Act visibility transitions */
+#act-intro.fading-out {
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+}
+
+#act-gesture.visible {
+  display: flex !important;
+  animation: act2Enter 0.5s ease-out forwards;
+}
+
+@keyframes act2Enter {
+  0%   { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 #start-hint {

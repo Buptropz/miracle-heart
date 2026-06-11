@@ -23,14 +23,49 @@
   <!-- ====== Start Screen ====== -->
   <div id="start-screen">
     <canvas id="firefly-canvas"></canvas>
-    <div id="heartbeat-ring"></div>
-    <div id="start-title">Miracle Heart</div>
-    <div id="start-sub">Interactive Nebula Confession</div>
-    <div id="start-hint">
-      🤌 左手捏合 · 唤醒记忆碎片 &nbsp;|&nbsp; ✌️ 左手剪刀 · 浮光三维画廊<br>
-      ✊ 左手握拳 · 隐入星云空间 &nbsp;|&nbsp; 🖐️ 右手开合 · 掌控宇宙爱心的跳动
+
+    <!-- Act 1: Project Introduction -->
+    <div id="act-intro" class="cover-act">
+      <div id="heartbeat-ring"></div>
+      <div id="start-title">Miracle Heart</div>
+      <div id="start-sub">基于 Three.js 与 AI 手势识别的<br>交互式浪漫星云告白页面</div>
+      <p id="intro-desc">在三维粒子星云中，用你的双手<br>创造属于你们的宇宙奇迹</p>
+      <button id="btn-explore">✨ 探索手势魔法 →</button>
     </div>
-    <button id="btn-start">✨ 开启梦幻之旅</button>
+
+    <!-- Act 2: Gesture Guide -->
+    <div id="act-gesture" class="cover-act" style="display:none;opacity:0;">
+      <div id="heartbeat-ring-sm"></div>
+      <h2 id="gesture-title">手势是通向星云的语言</h2>
+      <div id="gesture-cards">
+        <div class="gesture-card">
+          <span class="gesture-icon">🖐️</span>
+          <span class="gesture-name">右手开合</span>
+          <span class="gesture-desc">掌控心型聚合</span>
+        </div>
+        <div class="gesture-card">
+          <span class="gesture-icon">🤌</span>
+          <span class="gesture-name">左手捏合</span>
+          <span class="gesture-desc">唤醒记忆碎片</span>
+        </div>
+        <div class="gesture-card">
+          <span class="gesture-icon">✌️</span>
+          <span class="gesture-name">左手剪刀</span>
+          <span class="gesture-desc">浮光三维画廊</span>
+        </div>
+        <div class="gesture-card">
+          <span class="gesture-icon">✊</span>
+          <span class="gesture-name">左手握拳</span>
+          <span class="gesture-desc">隐入星云空间</span>
+        </div>
+        <div class="gesture-card">
+          <span class="gesture-icon">📷</span>
+          <span class="gesture-name">上传照片</span>
+          <span class="gesture-desc">注入专属记忆</span>
+        </div>
+      </div>
+      <button id="btn-start">✨ 开启梦幻之旅</button>
+    </div>
   </div>
 
   <!-- ====== Main Title ====== -->

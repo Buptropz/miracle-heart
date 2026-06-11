@@ -23,7 +23,7 @@ import { initAI, cleanupGestures, handPos, handTracked } from './gestures.js';
 import { initAudio, updateBeat, cleanupAudio, audioEl, audioCtx, beat } from './audio.js';
 import { setupUI } from './ui.js';
 import { photoMeshes, updatePhotoLogic, updateTransition, cleanupPhotos, cleanupTransition } from './photos.js';
-import { initCover, destroyCover } from './cover.js';
+import { initCover, destroyCover, triggerScatter } from './cover.js';
 
 // Start cover firefly system immediately
 initCover();
@@ -194,6 +194,22 @@ function animate() {
 
   composer.render();
 }
+
+// --- Act transition: intro → gesture ---
+document.getElementById('btn-explore').addEventListener('click', () => {
+  triggerScatter();
+
+  const actIntro = document.getElementById('act-intro');
+  const actGesture = document.getElementById('act-gesture');
+
+  // Fade out act-intro
+  actIntro.classList.add('fading-out');
+
+  // After scattering phase, show act-gesture
+  setTimeout(() => {
+    actGesture.classList.add('visible');
+  }, 600);
+});
 
 // --- Bootstrap ---
 document.getElementById('btn-start').addEventListener('click', async () => {
