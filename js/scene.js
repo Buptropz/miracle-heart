@@ -17,7 +17,7 @@ export const _v = new THREE.Vector3();
 export function initThree(container) {
   // Scene
   scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x06040a, 0.002);
+  scene.fog = new THREE.FogExp2(0x06040a, 0.001);
 
   // Camera
   camera = new THREE.PerspectiveCamera(
@@ -65,12 +65,12 @@ export function initThree(container) {
   scene.add(rimLight);
 
   // Sapphire cool accent — blue depth
-  const blueLight = new THREE.PointLight(0x7eb8da, 55, 240);
+  const blueLight = new THREE.PointLight(0x7eb8da, 44, 240);
   blueLight.position.set(-60, 10, -40);
   scene.add(blueLight);
 
   // Amethyst purple glow
-  const purpleLight = new THREE.PointLight(0xb892d8, 45, 200);
+  const purpleLight = new THREE.PointLight(0xb892d8, 36, 200);
   purpleLight.position.set(55, -10, 30);
   scene.add(purpleLight);
 
@@ -147,8 +147,8 @@ export function createStarField() {
     return mat;
   };
 
-  mats.mat1 = addStars(1800, 1500, 0.6, 0xffc0cb, 0.6);
-  mats.mat3 = addStars(150, 1200, 2.5, 0xffffff, 0.85);
+  mats.mat1 = addStars(1800, 1500, 0.6, 0xffc0cb, 0.48);
+  mats.mat3 = addStars(150, 1200, 2.5, 0xffffff, 0.68);
   starFieldMat = mats;
 }
 
@@ -163,10 +163,10 @@ export function createSnow() {
   }
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   const mat = new THREE.PointsMaterial({
-    color: 0xfff0f5,
+    color: 0xffd6e0,
     size: 0.5,
     transparent: true,
-    opacity: 0.5,
+    opacity: 0.4,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
   });

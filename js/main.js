@@ -11,11 +11,13 @@ import {
 } from './scene.js';
 import {
   createMaterialsAndMeshes, createSparkles, createDust, createTrailSystem,
-  createRingParticleSystem, updateMeshLogic, updateSparkleLogic, updateDustLogic,
-  updateTrailSystem,
+  createRingParticleSystem, createRipplePool, createNebulaVortex,
+  updateMeshLogic, updateSparkleLogic, updateDustLogic, updateTrailSystem,
+  updateRipples, updateNebulaVortex,
   roseGoldMesh, champagneMesh, blushMesh, pearlMesh,
   sapphireMesh, amethystMesh,
   sparkleSystem, dustSystem, logicData, trailSystem, ringParticlesSys,
+  ripplePool, nebulaVortex,
 } from './particles.js';
 import { initAI, cleanupGestures, handPos, handTracked } from './gestures.js';
 import { initAudio, updateBeat, cleanupAudio, audioEl, audioCtx, beat } from './audio.js';
@@ -49,8 +51,8 @@ function animate() {
 
   // Star field twinkle
   if (starFieldMat) {
-    starFieldMat.mat1.opacity = 0.5 + Math.sin(time * 1.5) * 0.15;
-    starFieldMat.mat3.opacity = 0.7 + Math.sin(time * 3.0) * 0.25;
+    starFieldMat.mat1.opacity = 0.4 + Math.sin(time * 1.5) * 0.12;
+    starFieldMat.mat3.opacity = 0.56 + Math.sin(time * 3.0) * 0.20;
   }
 
   // Blend factor easing
@@ -77,6 +79,8 @@ function animate() {
   updateSparkleLogic(easedBf, time);
   updateTrailSystem(state.blendFactor);
   updateDustLogic(easedBf, time);
+  updateRipples(performance.now() / 1000, beat, state.blendFactor);
+  updateNebulaVortex(time, beat, state.rotationSpeed);
   updatePhotoLogic(easedBf, time);
 
   // Central star
@@ -209,6 +213,8 @@ document.getElementById('btn-start').addEventListener('click', async () => {
   createDust();
   createTrailSystem();
   createRingParticleSystem();
+	createRipplePool();
+	createNebulaVortex();
 
   // Init audio
   initAudio(updateStatus);
@@ -243,6 +249,18 @@ window.addEventListener('beforeunload', () => {
     scene.remove(ringParticlesSys.points);
     ringParticlesSys.points.geometry.dispose();
     ringParticlesSys.points.material.dispose();
+  }
+  if (ripplePool) {
+    for (const r of ripplePool) {
+      mainGroup.remove(r.points);
+      r.points.geometry.dispose();
+      r.points.material.dispose();
+    }
+  }
+  if (nebulaVortex) {
+    scene.remove(nebulaVortex);
+    nebulaVortex.geometry.dispose();
+    nebulaVortex.material.dispose();
   }
   if (renderer) renderer.dispose();
   if (rAF_main) cancelAnimationFrame(rAF_main);

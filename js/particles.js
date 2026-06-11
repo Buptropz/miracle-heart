@@ -13,6 +13,10 @@ export let logicData = {
 };
 export let trailSystem = null;
 export let ringParticlesSys = null;
+export let ripplePool = [];
+export let nebulaVortex = null;
+let lastRippleTime = 0;
+let lastRippleFrameTime = 0;
 
 // --- Romantic color palette ---
 const PALETTE = {
@@ -383,6 +387,197 @@ export function createRingParticleSystem() {
   points.visible = false;
   scene.add(points);
   ringParticlesSys = { points, data, basePos: new Float32Array(pos) };
+}
+
+// --- Heartbeat ripple pool (L3) ---
+export function createRipplePool() {
+  const MAX_RIPPLES = 6;
+  const RIPPLE_PARTICLES = 120;
+
+  for (let i = 0; i < MAX_RIPPLES; i++) {
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(RIPPLE_PARTICLES * 3);
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+
+    const mat = new THREE.PointsMaterial({
+      color: PALETTE.roseGold,
+      size: 0.8,
+      transparent: true,
+      opacity: 0,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      sizeAttenuation: true,
+    });
+
+    const points = new THREE.Points(geo, mat);
+    points.visible = false;
+    points.frustumCulled = false;
+    mainGroup.add(points);
+
+    // Pre-compute per-particle angles and thickness offsets for stability
+    const angles = new Float32Array(RIPPLE_PARTICLES);
+    const offsets = new Float32Array(RIPPLE_PARTICLES);
+    for (let j = 0; j < RIPPLE_PARTICLES; j++) {
+      angles[j] = (j / RIPPLE_PARTICLES) * Math.PI * 2;
+      offsets[j] = (Math.random() - 0.5) * 2;
+    }
+
+    ripplePool.push({
+      points,
+      active: false,
+      age: 0,
+      baseColor: new THREE.Color(PALETTE.roseGold),
+      angles,
+      offsets,
+    });
+  }
+}
+
+// --- Update ripple lifecycle ---
+export function updateRipples(now, beat, blendFactor) {
+  const MAX_RIPPLES = 6;
+  const RIPPLE_PARTICLES = 120;
+  const LIFETIME = 1.8;
+  const COOLDOWN = 0.2;
+
+  // Compute real delta time
+  const dt = lastRippleFrameTime ? Math.min(now - lastRippleFrameTime, 0.1) : 0.016;
+  lastRippleFrameTime = now;
+
+  // Auto-heartbeat when no music: ~72 BPM = one beat per 0.833s
+  const autoBeat = Math.sin(now * Math.PI * 2 / 0.833) * 0.5 + 0.5;
+  const effectiveBeat = beat > 0.02 ? beat : (autoBeat > 0.55 ? autoBeat : 0);
+
+  if (blendFactor <= 0.8) {
+    for (const r of ripplePool) {
+      if (r.active) {
+        r.active = false;
+        r.points.visible = false;
+        r.points.material.opacity = 0;
+      }
+    }
+    return;
+  }
+
+  // Trigger new ripple on beat
+  if (effectiveBeat > 0.45 && (now - lastRippleTime) > COOLDOWN) {
+    for (const r of ripplePool) {
+      if (!r.active) {
+        r.active = true;
+        r.age = 0;
+        r.points.visible = true;
+        lastRippleTime = now;
+        break;
+      }
+    }
+  }
+
+  // Update each active ripple
+  for (const r of ripplePool) {
+    if (!r.active) continue;
+
+    r.age += dt;
+
+    if (r.age > LIFETIME) {
+      r.active = false;
+      r.points.visible = false;
+      r.points.material.opacity = 0;
+      continue;
+    }
+
+    let radius, opacity, thickness;
+    if (r.age < 0.3) {
+      const t = r.age / 0.3;
+      radius = t * 15;
+      opacity = 0.8;
+      thickness = 0.8;
+    } else if (r.age < 1.2) {
+      const t = (r.age - 0.3) / 0.9;
+      radius = 15 + t * 50;
+      opacity = 0.8 - t * 0.5;
+      thickness = 0.8 + t * 3.2;
+    } else {
+      const t = (r.age - 1.2) / 0.6;
+      radius = 65;
+      opacity = 0.3 * (1 - t);
+      thickness = 4;
+    }
+
+    const pos = r.points.geometry.attributes.position.array;
+    for (let i = 0; i < RIPPLE_PARTICLES; i++) {
+      const angle = r.angles[i];
+      const rOffset = r.offsets[i] * thickness * 0.5;
+      const rr = radius + rOffset;
+      pos[i * 3] = Math.cos(angle) * rr;
+      pos[i * 3 + 1] = 3.5 + (Math.random() - 0.5) * 0.3;
+      pos[i * 3 + 2] = Math.sin(angle) * rr * 0.45;
+    }
+
+    r.points.geometry.attributes.position.needsUpdate = true;
+    r.points.material.opacity = opacity;
+    r.points.material.size = 0.5 + thickness * 0.15;
+  }
+}
+
+// --- Nebula vortex (L1) ---
+export function createNebulaVortex() {
+  const count = 4000;
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(count * 3);
+  const colors = new Float32Array(count * 3);
+
+  const innerRadius = 80;
+  const outerRadius = 220;
+  const yScale = 0.15;
+
+  const innerColor = new THREE.Color(0xe8a0b4); // rose gold
+  const midColor = new THREE.Color(0xb892d8);   // amethyst
+  const outerColor = new THREE.Color(0x7eb8da); // ice blue
+  const color = new THREE.Color();
+
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const t = Math.random();
+    const radius = innerRadius + t * (outerRadius - innerRadius);
+
+    pos[i * 3] = Math.cos(angle) * radius;
+    pos[i * 3 + 1] = (Math.random() - 0.5) * yScale * radius * 2;
+    pos[i * 3 + 2] = Math.sin(angle) * radius;
+
+    if (t < 0.33) {
+      color.lerpColors(innerColor, midColor, t / 0.33);
+    } else if (t < 0.66) {
+      color.lerpColors(midColor, outerColor, (t - 0.33) / 0.33);
+    } else {
+      color.lerpColors(outerColor, new THREE.Color(0xc8ddf0), (t - 0.66) / 0.34);
+    }
+    colors[i * 3] = color.r;
+    colors[i * 3 + 1] = color.g;
+    colors[i * 3 + 2] = color.b;
+  }
+
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+  const mat = new THREE.PointsMaterial({
+    size: 1.2,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.4,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    sizeAttenuation: true,
+  });
+
+  nebulaVortex = new THREE.Points(geo, mat);
+  scene.add(nebulaVortex);
+}
+
+export function updateNebulaVortex(time, beat, rotSpeed) {
+  if (!nebulaVortex) return;
+  nebulaVortex.rotation.y += rotSpeed * 0.5;
+  const breathe = 1 + beat * 0.05;
+  nebulaVortex.scale.setScalar(THREE.MathUtils.lerp(nebulaVortex.scale.x, breathe, 0.1));
 }
 
 // --- Update mesh logic per frame ---
