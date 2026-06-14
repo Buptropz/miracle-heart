@@ -51,7 +51,7 @@ body {
 
 /* --- Background Themes --- */
 body.bg-midnight-rose { background: radial-gradient(ellipse at center bottom, #030106 0%, #010002 50%, #000000 100%); }
-body.bg-love-letter   { background: radial-gradient(ellipse at center bottom, #020105 0%, #010101 50%, #000000 100%); }
+body.bg-love-letter   { background: radial-gradient(ellipse at center bottom, #000a20 0%, #000310 50%, #000000 100%); }
 body.bg-wish-star     { background: radial-gradient(ellipse at center bottom, #010102 0%, #000000 60%, #000000 100%); }
 
 /* ============================================================

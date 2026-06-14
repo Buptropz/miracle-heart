@@ -197,15 +197,16 @@ const THEMES = {
   },
   'love-letter': {
     stops: [
-      { pos: 0.0, color: '#010102' },
-      { pos: 0.5, color: '#020103' },
-      { pos: 1.0, color: '#010002' },
+      { pos: 0.0, color: '#000510' },
+      { pos: 0.35, color: '#010a28' },
+      { pos: 0.7, color: '#00061a' },
+      { pos: 1.0, color: '#00020c' },
     ],
-    fogColor: 0x010103,
-    fogDensity: 0.0009,
-    overlay: 'inkVeins',
+    fogColor: 0x000412,
+    fogDensity: 0.00085,
+    overlay: 'blueNebula',
     animated: true,
-    animInterval: 2000,
+    animInterval: 2200,
   },
   'wish-star': {
     stops: [
@@ -224,6 +225,8 @@ const THEMES = {
 const bgCache = {};
 const bgState = {
   lastUpdate: 0,
+  // love-letter state
+  blueStars: null,
   // wish-star state
   chartNodes: [],
   chartLines: [],
@@ -246,24 +249,62 @@ function drawRosePetals(ctx, w, h) {
   ctx.fillRect(0, 0, w, h);
 }
 
-// --- Overlay: inkVeins (love-letter) ---
-function drawInkVeins(ctx, w, h, time) {
+// --- Overlay: blueNebula (love-letter) ---
+function initBlueStars(w, h) {
+  if (bgState.blueStars) return;
+  bgState.blueStars = [];
+  for (let i = 0; i < 22; i++) {
+    bgState.blueStars.push({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      size: 1 + Math.random() * 2.5,
+      baseAlpha: 0.04 + Math.random() * 0.1,
+      twinklePhase: Math.random() * Math.PI * 2,
+      twinkleSpeed: 0.4 + Math.random() * 1.4,
+    });
+  }
+}
+
+function drawBlueNebula(ctx, w, h, time) {
   const t = time * 0.001;
+
+  // 5 blue-toned glowing nebula veins — richer & more varied
   const veins = [
-    { xBase: 0.3, yBase: 0.38, radius: 0.19, color: 'rgba(200, 140, 150, 0.035)', period: 75, phase: 0 },
-    { xBase: 0.65, yBase: 0.52, radius: 0.17, color: 'rgba(150, 120, 180, 0.03)', period: 65, phase: 2.1 },
-    { xBase: 0.48, yBase: 0.6, radius: 0.21, color: 'rgba(180, 150, 120, 0.025)', period: 90, phase: 4.3 },
+    { xBase: 0.25, yBase: 0.30, rx: 0.26, ry: 0.18, color: 'rgba(30, 80, 200, 0.042)', period: 80, phase: 0 },
+    { xBase: 0.55, yBase: 0.45, rx: 0.30, ry: 0.16, color: 'rgba(80, 155, 230, 0.035)', period: 68, phase: 1.8 },
+    { xBase: 0.72, yBase: 0.35, rx: 0.22, ry: 0.20, color: 'rgba(120, 195, 240, 0.032)', period: 95, phase: 3.4 },
+    { xBase: 0.40, yBase: 0.62, rx: 0.28, ry: 0.17, color: 'rgba(20, 55, 160, 0.048)', period: 72, phase: 5.2 },
+    { xBase: 0.60, yBase: 0.55, rx: 0.24, ry: 0.15, color: 'rgba(55, 130, 215, 0.036)', period: 85, phase: 6.7 },
   ];
 
   veins.forEach(v => {
-    const x = w * (v.xBase + Math.sin(t / v.period * Math.PI * 2 + v.phase) * 0.12);
-    const y = h * (v.yBase + Math.cos(t / v.period * Math.PI * 2 + v.phase) * 0.1);
-    const r = h * v.radius;
-    const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
+    const cx = w * (v.xBase + Math.sin(t / v.period * Math.PI * 2 + v.phase) * 0.14);
+    const cy = h * (v.yBase + Math.cos(t / v.period * Math.PI * 2 + v.phase) * 0.12);
+    const rx = h * v.rx;
+    const ry = h * v.ry;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(1, ry / rx);
+    const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
     grad.addColorStop(0, v.color);
     grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
     ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, w, h);
+    ctx.fillRect(-rx, -rx, rx * 2, rx * 2);
+    ctx.restore();
+  });
+
+  // Micro-stars — 22 tiny blue-white twinkling dots
+  initBlueStars(w, h);
+  bgState.blueStars.forEach(star => {
+    const twinkle = 0.35 + 0.65 * Math.abs(Math.sin(t * star.twinkleSpeed + star.twinklePhase));
+    const alpha = star.baseAlpha * twinkle;
+    const glow = ctx.createRadialGradient(star.x, star.y, 0, star.x, star.y, star.size * 2.5);
+    glow.addColorStop(0, `rgba(180, 210, 255, ${Math.min(alpha * 2, 0.28)})`);
+    glow.addColorStop(0.4, `rgba(140, 185, 240, ${alpha})`);
+    glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(star.x - 8, star.y - 8, 16, 16);
   });
 }
 
@@ -362,7 +403,7 @@ function drawStarChart(ctx, w, h, time) {
 // --- Draw overlay dispatcher ---
 function drawOverlay(ctx, w, h, type, time) {
   if (type === 'rosePetals') drawRosePetals(ctx, w, h);
-  else if (type === 'inkVeins') drawInkVeins(ctx, w, h, time);
+  else if (type === 'blueNebula') drawBlueNebula(ctx, w, h, time);
   else if (type === 'starChart') drawStarChart(ctx, w, h, time);
 }
 
