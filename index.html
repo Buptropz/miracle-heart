@@ -30,11 +30,33 @@
       <div id="start-title">Miracle Heart</div>
       <div id="start-sub">基于 Three.js 与 AI 手势识别的<br>交互式浪漫星云告白页面</div>
       <p id="intro-desc">在三维粒子星云中，用你的双手<br>创造属于你们的宇宙奇迹</p>
-      <button id="btn-explore">✨ 探索手势魔法 →</button>
     </div>
+
+    <!-- Act 1 navigation button — positioned independently for maximum visibility -->
+    <button id="btn-explore">
+      <span class="btn-explore-text">✨ 探索手势魔法</span>
+      <span class="btn-explore-arrow">↓</span>
+    </button>
 
     <!-- Act 2: Gesture Guide -->
     <div id="act-gesture" class="cover-act" style="display:none;opacity:0;">
+      <!-- Background decorative layer -->
+      <div id="act2-bg-layer">
+        <div class="act2-orb orb-1"></div>
+        <div class="act2-orb orb-2"></div>
+        <div class="act2-orb orb-3"></div>
+        <div class="act2-orb orb-4"></div>
+        <div class="act2-sparkle-container">
+          <span class="act2-sparkle s1"></span>
+          <span class="act2-sparkle s2"></span>
+          <span class="act2-sparkle s3"></span>
+          <span class="act2-sparkle s4"></span>
+          <span class="act2-sparkle s5"></span>
+          <span class="act2-sparkle s6"></span>
+          <span class="act2-sparkle s7"></span>
+          <span class="act2-sparkle s8"></span>
+        </div>
+      </div>
       <div id="heartbeat-ring-sm"></div>
       <h2 id="gesture-title">手势是通向星云的语言</h2>
       <div id="gesture-cards">

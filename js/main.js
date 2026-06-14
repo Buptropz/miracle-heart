@@ -196,14 +196,15 @@ function animate() {
 }
 
 // --- Act transition: intro → gesture ---
-document.getElementById('btn-explore').addEventListener('click', () => {
+document.getElementById('btn-explore').addEventListener('click', function () {
   triggerScatter();
 
   const actIntro = document.getElementById('act-intro');
   const actGesture = document.getElementById('act-gesture');
 
-  // Fade out act-intro
+  // Fade out act-intro and the button itself
   actIntro.classList.add('fading-out');
+  this.classList.add('fading-out');
 
   // After scattering phase, show act-gesture
   setTimeout(() => {
