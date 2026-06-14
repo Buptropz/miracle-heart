@@ -8,6 +8,7 @@ import {
   initThree, createStarField, createSnow,
   scene, camera, renderer, composer, mainGroup,
   bloomPass, starFieldMat,
+  updateBackgroundAnim,
 } from './scene.js';
 import {
   createMaterialsAndMeshes, createSparkles, createDust, createTrailSystem,
@@ -191,6 +192,9 @@ function animate() {
       });
     }
   }
+
+  // Animated background overlays (love-letter / wish-star)
+  updateBackgroundAnim(performance.now(), state.currentBg);
 
   composer.render();
 }

@@ -17,7 +17,7 @@ export const _v = new THREE.Vector3();
 export function initThree(container) {
   // Scene
   scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x06040a, 0.001);
+  scene.fog = new THREE.FogExp2(0x010002, 0.0008);
 
   // Camera
   camera = new THREE.PerspectiveCamera(
@@ -111,15 +111,18 @@ export function initThree(container) {
 // --- Star Field ---
 export function createStarField() {
   const gradCanvas = document.createElement('canvas');
-  gradCanvas.width = 2;
-  gradCanvas.height = 512;
+  gradCanvas.width = BG_W;
+  gradCanvas.height = BG_H;
   const gctx = gradCanvas.getContext('2d');
-  const grad = gctx.createLinearGradient(0, 0, 0, 512);
-  grad.addColorStop(0.0, '#0a0513');
-  grad.addColorStop(0.50, '#150926');
-  grad.addColorStop(1.0, '#05020a');
+  const grad = gctx.createLinearGradient(0, 0, 0, BG_H);
+  grad.addColorStop(0.0, '#010002');
+  grad.addColorStop(0.4, '#020104');
+  grad.addColorStop(0.7, '#030105');
+  grad.addColorStop(1.0, '#010002');
   gctx.fillStyle = grad;
-  gctx.fillRect(0, 0, 2, 512);
+  gctx.fillRect(0, 0, BG_W, BG_H);
+  // Rose petal overlay
+  drawRosePetals(gctx, BG_W, BG_H);
   scene.background = new THREE.CanvasTexture(gradCanvas);
 
   const mats = {};
@@ -175,28 +178,273 @@ export function createSnow() {
   return snow;
 }
 
-// --- Set Background Theme ---
-export function setBackground(type, currentBg) {
-  currentBg = type;
+// --- Background Theme System ---
+const BG_W = 128;
+const BG_H = 512;
+
+const THEMES = {
+  'midnight-rose': {
+    stops: [
+      { pos: 0.0, color: '#010002' },
+      { pos: 0.4, color: '#020104' },
+      { pos: 0.7, color: '#030105' },
+      { pos: 1.0, color: '#010002' },
+    ],
+    fogColor: 0x010002,
+    fogDensity: 0.0008,
+    overlay: 'rosePetals',
+    animated: false,
+  },
+  'love-letter': {
+    stops: [
+      { pos: 0.0, color: '#010102' },
+      { pos: 0.5, color: '#020103' },
+      { pos: 1.0, color: '#010002' },
+    ],
+    fogColor: 0x010103,
+    fogDensity: 0.0009,
+    overlay: 'inkVeins',
+    animated: true,
+    animInterval: 2000,
+  },
+  'wish-star': {
+    stops: [
+      { pos: 0.0, color: '#000000' },
+      { pos: 0.5, color: '#000000' },
+      { pos: 1.0, color: '#010101' },
+    ],
+    fogColor: 0x000000,
+    fogDensity: 0.0006,
+    overlay: 'starChart',
+    animated: true,
+    animInterval: 1500,
+  },
+};
+
+const bgCache = {};
+const bgState = {
+  lastUpdate: 0,
+  // wish-star state
+  chartNodes: [],
+  chartLines: [],
+  nextMeteorTime: 0,
+  meteors: [],
+};
+
+// --- Overlay: rosePetals (midnight-rose) ---
+function drawRosePetals(ctx, w, h) {
+  const r1 = ctx.createRadialGradient(w * 0.35, h * 0.55, 0, w * 0.35, h * 0.55, h * 0.18);
+  r1.addColorStop(0, 'rgba(120, 30, 50, 0.025)');
+  r1.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = r1;
+  ctx.fillRect(0, 0, w, h);
+
+  const r2 = ctx.createRadialGradient(w * 0.6, h * 0.65, 0, w * 0.6, h * 0.65, h * 0.14);
+  r2.addColorStop(0, 'rgba(80, 20, 40, 0.018)');
+  r2.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = r2;
+  ctx.fillRect(0, 0, w, h);
+}
+
+// --- Overlay: inkVeins (love-letter) ---
+function drawInkVeins(ctx, w, h, time) {
+  const t = time * 0.001;
+  const veins = [
+    { xBase: 0.3, yBase: 0.38, radius: 0.19, color: 'rgba(200, 140, 150, 0.035)', period: 75, phase: 0 },
+    { xBase: 0.65, yBase: 0.52, radius: 0.17, color: 'rgba(150, 120, 180, 0.03)', period: 65, phase: 2.1 },
+    { xBase: 0.48, yBase: 0.6, radius: 0.21, color: 'rgba(180, 150, 120, 0.025)', period: 90, phase: 4.3 },
+  ];
+
+  veins.forEach(v => {
+    const x = w * (v.xBase + Math.sin(t / v.period * Math.PI * 2 + v.phase) * 0.12);
+    const y = h * (v.yBase + Math.cos(t / v.period * Math.PI * 2 + v.phase) * 0.1);
+    const r = h * v.radius;
+    const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
+    grad.addColorStop(0, v.color);
+    grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+  });
+}
+
+// --- Overlay: starChart (wish-star) ---
+function initChartNodes(w, h) {
+  if (bgState.chartNodes.length > 0) return;
+  const count = 10;
+  for (let i = 0; i < count; i++) {
+    bgState.chartNodes.push({
+      x: w * 0.1 + Math.random() * w * 0.8,
+      y: h * 0.08 + Math.random() * h * 0.84,
+      baseAlpha: 0.05 + Math.random() * 0.07,
+      twinklePhase: Math.random() * Math.PI * 2,
+      twinkleSpeed: 0.7 + Math.random() * 1.6,
+    });
+  }
+  for (let i = 0; i < bgState.chartNodes.length; i++) {
+    for (let j = i + 1; j < bgState.chartNodes.length; j++) {
+      const a = bgState.chartNodes[i];
+      const b = bgState.chartNodes[j];
+      const dist = Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
+      if (dist < w * 0.45) {
+        bgState.chartLines.push({ from: i, to: j });
+      }
+    }
+  }
+}
+
+function drawStarChart(ctx, w, h, time) {
+  initChartNodes(w, h);
+  const t = time * 0.001;
+
+  // Constellation lines
+  ctx.strokeStyle = 'rgba(180, 160, 140, 0.035)';
+  ctx.lineWidth = 0.4;
+  bgState.chartLines.forEach(line => {
+    const a = bgState.chartNodes[line.from];
+    const b = bgState.chartNodes[line.to];
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
+  });
+
+  // Twinkling nodes
+  bgState.chartNodes.forEach(node => {
+    const twinkle = 0.5 + 0.5 * Math.sin(t * node.twinkleSpeed + node.twinklePhase);
+    const alpha = node.baseAlpha * (0.4 + twinkle * 0.6);
+    const glow = ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, 6);
+    glow.addColorStop(0, `rgba(210, 180, 145, ${Math.min(alpha * 2.5, 0.22)})`);
+    glow.addColorStop(0.3, `rgba(200, 170, 140, ${alpha})`);
+    glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(node.x - 8, node.y - 8, 16, 16);
+  });
+
+  // Meteor spawn
+  if (!bgState.nextMeteorTime) bgState.nextMeteorTime = time + 8000 + Math.random() * 7000;
+  if (time > bgState.nextMeteorTime) {
+    const startX = Math.random() * w * 0.9;
+    const startY = Math.random() * h * 0.5;
+    bgState.meteors.push({
+      x: startX, y: startY,
+      vx: 25 + Math.random() * 40,
+      vy: 18 + Math.random() * 28,
+      life: 0,
+      maxLife: 1.2 + Math.random() * 0.6,
+    });
+    bgState.nextMeteorTime = time + 8000 + Math.random() * 7000;
+  }
+
+  // Draw & update meteors
+  bgState.meteors = bgState.meteors.filter(m => {
+    m.life += 0.016;
+    if (m.life > m.maxLife) return false;
+    const progress = m.life / m.maxLife;
+    const fade = 1 - progress;
+    const cx = m.x + m.vx * m.life;
+    const cy = m.y + m.vy * m.life;
+    const tx = cx - m.vx * 0.18;
+    const ty = cy - m.vy * 0.18;
+    const grad = ctx.createLinearGradient(cx, cy, tx, ty);
+    grad.addColorStop(0, `rgba(255, 195, 170, ${fade * 0.28})`);
+    grad.addColorStop(0.5, `rgba(255, 185, 160, ${fade * 0.12})`);
+    grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(tx, ty);
+    ctx.stroke();
+    return true;
+  });
+}
+
+// --- Draw overlay dispatcher ---
+function drawOverlay(ctx, w, h, type, time) {
+  if (type === 'rosePetals') drawRosePetals(ctx, w, h);
+  else if (type === 'inkVeins') drawInkVeins(ctx, w, h, time);
+  else if (type === 'starChart') drawStarChart(ctx, w, h, time);
+}
+
+// --- Build background texture ---
+function buildBgTexture(type, time) {
+  const theme = THEMES[type];
+  if (!theme) return null;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = BG_W;
+  canvas.height = BG_H;
+  const ctx = canvas.getContext('2d');
+
+  // Base gradient
+  const grad = ctx.createLinearGradient(0, 0, 0, BG_H);
+  theme.stops.forEach(s => grad.addColorStop(s.pos, s.color));
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, BG_W, BG_H);
+
+  // Overlay
+  if (theme.overlay) {
+    drawOverlay(ctx, BG_W, BG_H, theme.overlay, time || 0);
+  }
+
+  return { canvas, texture: new THREE.CanvasTexture(canvas) };
+}
+
+// --- Public: set background theme ---
+export function setBackground(type) {
+  const theme = THEMES[type];
+  if (!theme) return type;
+
   document.body.className = 'bg-' + type;
 
-  if (type === 'black') {
-    const c = document.createElement('canvas');
-    c.width = 2;
-    c.height = 512;
-    const gctx = c.getContext('2d');
-    const g = gctx.createLinearGradient(0, 0, 0, 512);
-    g.addColorStop(0, '#0a0513');
-    g.addColorStop(0.5, '#150926');
-    g.addColorStop(1, '#05020a');
-    gctx.fillStyle = g;
-    gctx.fillRect(0, 0, 2, 512);
-    scene.background = new THREE.CanvasTexture(c);
-    scene.fog.color.setHex(0x06040a);
+  if (!bgCache[type]) {
+    bgCache[type] = buildBgTexture(type, 0);
+  } else if (!theme.animated) {
+    // Static themes are already cached and correct — reuse
   } else {
-    const colors = { deep: 0x050518, warm: 0x1a0808, aurora: 0x061218 };
-    scene.background = new THREE.Color(colors[type] || 0x050518);
-    scene.fog.color.setHex(colors[type] || 0x050518);
+    // Animated: rebuild to get fresh overlay
+    const entry = buildBgTexture(type, performance.now());
+    bgCache[type].texture.dispose();
+    bgCache[type] = entry;
   }
-  return currentBg;
+
+  scene.background = bgCache[type].texture;
+  scene.fog.color.setHex(theme.fogColor);
+  scene.fog.density = theme.fogDensity;
+
+  bgState.lastUpdate = performance.now();
+  return type;
 }
+
+// --- Public: update animated background overlays ---
+export function updateBackgroundAnim(now, currentBg) {
+  const theme = THEMES[currentBg];
+  if (!theme || !theme.animated) return;
+
+  if (now - bgState.lastUpdate < theme.animInterval) return;
+  bgState.lastUpdate = now;
+
+  const cache = bgCache[currentBg];
+  if (!cache) return;
+
+  const ctx = cache.canvas.getContext('2d');
+
+  // Redraw base gradient
+  ctx.clearRect(0, 0, BG_W, BG_H);
+  const grad = ctx.createLinearGradient(0, 0, 0, BG_H);
+  theme.stops.forEach(s => grad.addColorStop(s.pos, s.color));
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, BG_W, BG_H);
+
+  // Redraw overlay with current time
+  if (theme.overlay) {
+    drawOverlay(ctx, BG_W, BG_H, theme.overlay, now);
+  }
+
+  cache.texture.needsUpdate = true;
+}
+
+// --- Set Background Theme (legacy compat — replaced by setBackground above) ---
+// The old setBackground(type, currentBg) is removed.
+// Callers should use: state.currentBg = setBackground(type);
+

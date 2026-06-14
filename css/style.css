@@ -50,10 +50,9 @@ body {
 }
 
 /* --- Background Themes --- */
-body.bg-black  { background: radial-gradient(ellipse at center bottom, #0c0714 0%, #05030a 50%, #020105 100%); }
-body.bg-deep   { background: radial-gradient(circle at center, #1a1a2e 0%, #0a0a14 50%, #000000 100%); }
-body.bg-warm   { background: radial-gradient(circle at center, #2e1a1a 0%, #160909 50%, #0f0505 100%); }
-body.bg-aurora { background: radial-gradient(circle at top, #0f2027 0%, #1a3340 40%, #203a43 70%, #2c5364 100%); }
+body.bg-midnight-rose { background: radial-gradient(ellipse at center bottom, #030106 0%, #010002 50%, #000000 100%); }
+body.bg-love-letter   { background: radial-gradient(ellipse at center bottom, #020105 0%, #010101 50%, #000000 100%); }
+body.bg-wish-star     { background: radial-gradient(ellipse at center bottom, #010102 0%, #000000 60%, #000000 100%); }
 
 /* ============================================================
    Start Screen

@@ -95,7 +95,7 @@ export function setupUI() {
 
   // Background theme
   document.getElementById('bg-select').addEventListener('change', (e) => {
-    state.currentBg = setSceneBg(e.target.value, state.currentBg);
+    state.currentBg = setSceneBg(e.target.value);
   });
 
   // Rotation speed slider

@@ -6,7 +6,7 @@ import { STATE } from './config.js';
 export const state = {
   currentState: STATE.PARTICLE,
   zoomTargetIndex: -1,
-  currentBg: 'black',
+  currentBg: 'midnight-rose',
   blendFactor: 1,
   rotationSpeed: 0.002,
   ringCurrentAngle: 0,
